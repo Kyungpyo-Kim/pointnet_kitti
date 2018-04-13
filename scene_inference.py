@@ -13,7 +13,7 @@ parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU
 parser.add_argument('--batch_size', type=int, default=1, help='Batch Size during training [default: 1]')
 parser.add_argument('--model_path', required=True, help='model checkpoint file path')
 parser.add_argument('--out_dir', default='./scene_infer', help='output folder path')
-parser.add_argument('--scene_num', type=int, required=True, help='number of scene')
+parser.add_argument('--scene_num', type=int, default=0, help='number of scene')
 
 FLAGS = parser.parse_args()
 
@@ -34,35 +34,8 @@ if not os.path.exists(DUMP_EVAL_DIR): os.mkdir(DUMP_EVAL_DIR)
 LOG_FOUT = open(os.path.join(DUMP_EVAL_DIR, 'log_evaluate.txt'), 'w')
 LOG_FOUT.write(str(FLAGS)+'\n')
 
-NUM_CLASSES = 4
+NUM_CLASSES = OUT_DIM
 
-
-
-'''
-# Load ALL data
-data_batch_list = []
-label_batch_list = []
-for h5_filename in ALL_FILES:
-    print(">>>", h5_filename)
-    data_batch, label_batch = provider.loadDataFile(h5_filename)
-    data_batch_list.append(data_batch)
-    label_batch_list.append(label_batch)
-data_batches = np.concatenate(data_batch_list, 0)
-label_batches = np.concatenate(label_batch_list, 0)
-print(data_batches.shape)
-print(label_batches.shape)
-
-train_idxs = FLAGS.train_num
-
-train_data = data_batches[:train_idxs - 1,...]
-train_label = label_batches[:train_idxs- 1]
-
-test_data = data_batches[train_idxs:,...]
-test_label = label_batches[train_idxs:]
-
-print(train_data.shape, train_label.shape)
-print(test_data.shape, test_label.shape)
-'''
 def log_string(out_str):
     LOG_FOUT.write(out_str+'\n')
     LOG_FOUT.flush()
@@ -105,7 +78,7 @@ def evaluate():
     total_seen = 0
     #fout_out_filelist = open(FLAGS.output_filelist, 'w')
 
-    for i in range(7000):
+    for i in range(10):
       eval_one_scene(sess, ops, i)
 
     #eval_one_epoch_kitti(sess, ops)
