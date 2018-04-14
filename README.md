@@ -31,8 +31,8 @@
         |   ├── image_2   
         |   ├── label_2   
         |   └── velodyne  
-        └── raw
-            ├── 2011_09_26	# kitti data(raw)
+        └── raw             # kitti data(raw)
+            ├── 2011_09_26	
             |   ├── 2011_09_26_drive_0001_sync
             |   ├── calib_cam_to_cam.txt
             |   ├── calib_imu_to_velo.txt
