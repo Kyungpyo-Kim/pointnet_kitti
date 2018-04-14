@@ -11,9 +11,9 @@
 
 ```folder
 .
-├── build   <-- Cython build file
+├── build	# Cython build file
 ├── doc
-├── utils   <-- some src files
+├── utils	# some src files
 ├── setup.py
 ├── train.py
 ├── model.py
@@ -21,9 +21,9 @@
 ├── kitti_visu_tool.py
 ├── scene_inference.py
 ├── README.md
-└── data    <-- KITTI data directory 
+└── data    	# KITTI data directory 
     └── kitti
-        ├── training   <-- training data
+        ├── training		# 3D object detection benchmark
         |   ├── image_2   
         |   ├── label_2   
         |   └── velodyne  
@@ -32,7 +32,11 @@
         |   ├── label_2   
         |   └── velodyne  
         └── raw
-            ├── 2011_09_26 <-- kitti data(raw)
+            ├── 2011_09_26	# kitti data(raw)
+            |   ├── 2011_09_26_drive_0001_sync
+            |   ├── calib_cam_to_cam.txt
+            |   ├── calib_imu_to_velo.txt
+            |   └── calib_velo_to_cam.txt
              .
              .
              .
@@ -57,8 +61,19 @@ python gen_kitti_h5.py
 python train.py --log_dir log --batch_size 16 --max_epoch 1 --learning_rate 0.0001 --train_num 3000
 ```
 
+## Testing
+
+### KITTI 3D Object Benchmark
+
 ```bash
 python scene_inference.py --model_path ./log2/model0.ckpt
 ```
+
+### KITTI Raw Data
+
+```bash
+python kitti_raw_inference.py --model_path ./log2/model0.ckpt
+```
+
 
 /home/acepc01/Kyungpyo/git/pointnet/sem_seg/log_test7/model40.ckpt

@@ -1,0 +1,8 @@
+data/
+kitti_raw_infer/
+scene_infer/
+__*/
+log*/
+*~
+*.o
+*.so

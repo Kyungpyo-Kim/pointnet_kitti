@@ -234,7 +234,95 @@ def room2blocks(data, label, num_point, block_size=1.0, stride=1.0,
     else:
         return [], []
            
+def room2blocks_xyz(data, label, x, y, z, num_point, block_size=1.0, stride=1.0,
+                random_sample=False, sample_num=None, sample_aug=1, is_train = True):
+    """ Prepare block training data.
+    Args:
+        data: N x 3 numpy array, 012 are XYZ in meters
+            assumes the data is shifted and aligned
+            (aligned with XYZ axis)
+        label: N size uint8 numpy array from 0-3
+        num_point: int, how many points to sample in each block
+        block_size: float, physical size of the block in meters
+        stride: float, stride for block sweeping
+        random_sample: bool, if True, we will randomly sample blocks in the room
+        sample_num: int, if random sample, how many blocks to sample
+            [default: room area]
+        sample_aug: if random sample, how much aug
+    Returns:
+        block_datas: K x num_point x 3 np array of XYZRGB, RGB is in [0,1]
+        block_labels: K x num_point x 1 np array of uint8 labels
+        
+    TODO: for this version, blocking is in fixed, non-overlapping pattern.
+    """
+    assert(stride<=block_size)
+
+     
+    # Get the corner location for our sampling blocks    
+    xbeg_list = []
+    ybeg_list = []
+    if not random_sample:
+        num_block_x = int(np.ceil((x[1] - x[0] - block_size) / stride)) + 1
+        num_block_y = int(np.ceil((y[1] - y[0] - block_size) / stride)) + 1
+        for i in range(num_block_x):
+            for j in range(num_block_y):
+                xbeg_list.append(i*stride)
+                ybeg_list.append(j*stride)
+    else:
+        num_block_x = int(np.ceil(x[1] / block_size))
+        num_block_y = int(np.ceil(y[1] / block_size))
+        if sample_num is None:
+            sample_num = num_block_x * num_block_y * sample_aug
+        for _ in range(sample_num):
+            xbeg = np.random.uniform(-block_size, x[1]) 
+            ybeg = np.random.uniform(-block_size, y[1]) 
+            xbeg_list.append(xbeg)
+            ybeg_list.append(ybeg)
+
+    # Collect blocks
+    block_data_list = []
+    block_label_list = []
     
+    # Shifting origin to (0, 0, 0)
+    data[:,0] -= x[0]
+    data[:,1] -= y[0]
+    data[:,2] -= z[0]
+       
+    for idx in range(len(xbeg_list)): 
+       xbeg = xbeg_list[idx]
+       ybeg = ybeg_list[idx]
+
+       xcond = (data[:,0]<=xbeg+block_size) & (data[:,0]>=xbeg)
+       ycond = (data[:,1]<=ybeg+block_size) & (data[:,1]>=ybeg)
+       cond = xcond & ycond
+       
+       if np.sum(cond) == 0:
+           continue
+
+       if np.sum(cond) < 1024 and is_train: # discard block if there are less than 1024 pts.
+           continue
+
+       block_data = data[cond, :]
+       block_label = label[cond]
+       
+       lcond = block_label > 0
+
+       # discard block if there are less than 10% points of objects
+       if np.sum(lcond)/len(lcond) < 0.1 and is_train:
+         continue
+
+       # randomly subsample data
+       block_data_sampled, block_label_sampled = \
+           sample_data_label(block_data, block_label, num_point)
+       block_data_list.append(np.expand_dims(block_data_sampled, 0))
+       block_label_list.append(np.expand_dims(block_label_sampled, 0))
+       
+
+    if len(block_data_list) > 0:
+      return np.concatenate(block_data_list, 0), \
+           np.concatenate(block_label_list, 0)
+    else:
+        return [], []
 
        
 '''
@@ -309,9 +397,9 @@ def room2blocks_plus_normalized_xyz(data_label, x, y, z, num_point, block_size, 
     min_local_y = data[:,1].min()
     min_local_z = data[:,2].min()
 
-    data_batch, label_batch = room2blocks(data, label, num_point, block_size, stride,
+    data_batch, label_batch = room2blocks_xyz(data, label, x, y, z, num_point, block_size, stride,
                                           random_sample, sample_num, sample_aug, is_train)
-    
+
     if len(data_batch) >= 1:
         new_data_batch = np.zeros((data_batch.shape[0], POINT_NUM, INPUT_DIM))
         for b in range(data_batch.shape[0]):
