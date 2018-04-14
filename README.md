@@ -1,11 +1,16 @@
 # README
 
 ## Environment
+
 * Ubuntu14.04LTS
 * Python3.6
 * Spyder3
 * Tensorflow-gpu 1.5.0
-## 
+
+## Folder-structure
+
+```folder
+.
 ├── build   <-- Cython build file
 ├── doc
 ├── utils   <-- some src files
@@ -31,7 +36,8 @@
              .
              .
              .
-       
+```
+
 ## Setup - build box overapping
 
 ```bash
